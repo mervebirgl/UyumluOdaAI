@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kişilik Testi - Oda Eşleştirme</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div class="container">
+        <div class="card shadow-lg">
+            <h2 class="mb-4">Kişilik Testi</h2>
+            <p class="text-muted">Bu test, yurt odası yerleşimi için kişilik özelliklerinizi değerlendirmek amacıyla hazırlanmıştır.</p>
+            
+            <form id="testForm">
+                <!-- Ad ve Soyad Tek Kutuda -->
+                <div class="mb-3">
+                    <label class="form-label">Ad Soyad</label>
+                    <input type="text" class="form-control" name="full_name" required placeholder="Adınızı ve Soyadınızı girin">
+                </div>
+
+                <!-- Kişilik Testi Soruları -->
+                <div id="test-container"></div>
+
+                <button type="submit" class="btn btn-primary w-100 mt-3">Gönder</button>
+            </form>
+
+            <h4 class="mt-4 text-center" id="roomResult"></h4>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
