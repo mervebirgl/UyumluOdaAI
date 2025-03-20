@@ -3,33 +3,217 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kişilik Testi - Oda Eşleştirme</title>
-    <link rel="stylesheet" href="style.css">
+    <title>Yurt İşlemleri</title>
+    <style>
+        /* Genel Stil */
+        body {
+            font-family: 'Arial', sans-serif;
+            background: #f9e8e8;
+            text-align: center;
+            color: black;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            max-width: 400px;
+            width: 90%;
+            text-align: center;
+        }
+
+        .menu-item {
+            background: #f2caca;
+            padding: 15px;
+            margin: 10px;
+            border-radius: 10px;
+            width: 100%;
+            text-align: left;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 16px;
+            cursor: pointer;
+            transition: 0.3s;
+            border: none;
+        }
+
+        .menu-item:hover {
+            background: #fa8787;
+        }
+
+        .arrow {
+            color: #d32f2f;
+            font-size: 18px;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        /* Oda Değişim Sayfası */
+        .room-container {
+            background: #fdd8d8;
+            padding: 20px;
+            border-radius: 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            max-width: 400px;
+            width: 90%;
+            text-align: center;
+        }
+
+        .input-field {
+            width: 80%;
+            padding: 12px;
+            margin-bottom: 12px;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+            text-align: center;
+            font-size: 16px;
+        }
+
+        .btn {
+            padding: 12px 18px;
+            margin: 10px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: 0.3s;
+            width: 100%;
+        }
+
+        .green-btn {
+            background: #d32f2f;
+            color: white;
+            font-weight: bold;
+        }
+
+        .green-btn:hover {
+            background: #d01515;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        @media (max-width: 480px) {
+            .container, .room-container {
+                width: 90%;
+                padding: 20px;
+            }
+        }
+    </style>
 </head>
 <body>
+    <div class="container" id="menuScreen">
+        <h2>Yurt İşlemleri</h2>
+        <button class="menu-item" onclick="openRoomChange()">Yurt Oda Değiştirme <span class="arrow">›</span></button>
+        <button class="menu-item">Yurt Nakil <span class="arrow">›</span></button>
+        <button class="menu-item">Yurt Kayıt Silme <span class="arrow">›</span></button>
+        <button class="menu-item">Yurt Başvuru <span class="arrow">›</span></button>
+        <button class="menu-item">Yurt Ödeme <span class="arrow">›</span></button>
+    </div>
 
-    <div class="container">
-        <div class="card shadow-lg">
-            <h2 class="mb-4">Kişilik Testi</h2>
-            <p class="text-muted">Bu test, yurt odası yerleşimi için kişilik özelliklerinizi değerlendirmek amacıyla hazırlanmıştır.</p>
-            
-            <form id="testForm">
-                <!-- Ad ve Soyad Tek Kutuda -->
-                <div class="mb-3">
-                    <label class="form-label">Ad Soyad</label>
-                    <input type="text" class="form-control" name="full_name" required placeholder="Adınızı ve Soyadınızı girin">
-                </div>
+    <div class="room-container hidden" id="roomChangeScreen">
+        <h2>Oda Değişim Sistemi</h2>
+        
+        <div id="step1">
+            <label for="student-id">Öğrenci ID'nizi Girin:</label>
+            <input type="number" class="input-field" id="student-id" placeholder="Öğrenci ID" required>
+            <button class="btn green-btn" onclick="fetchRecommendedRooms()">Oda Değiştirmek İstiyorum</button>
+        </div>
 
-                <!-- Kişilik Testi Soruları -->
-                <div id="test-container"></div>
+        <div id="step2" class="hidden">
+            <h3>Size en uygun odaları öneriyoruz:</h3>
+            <div id="room-options"></div>
+        </div>
 
-                <button type="submit" class="btn btn-primary w-100 mt-3">Gönder</button>
-            </form>
-
-            <h4 class="mt-4 text-center" id="roomResult"></h4>
+        <div id="step3" class="hidden">
+            <h3>Oda Değişimi Başarılı!</h3>
+            <p>Yeni Odanız: <strong id="new-room-id"></strong></p>
+            <button class="btn green-btn" onclick="restart()">Tamam</button>
         </div>
     </div>
 
-    <script src="script.js"></script>
+    <script>
+        function openRoomChange() {
+            document.getElementById("menuScreen").classList.add("hidden");
+            document.getElementById("roomChangeScreen").classList.remove("hidden");
+        }
+
+        function confirmRoom(roomId) {
+            let studentId = document.getElementById('student-id').value;
+            if (!studentId) {
+                alert("Lütfen öğrenci ID'nizi girin!");
+                return;
+            }
+
+            fetch('http://127.0.0.1:8000/confirm_room_change', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ student_id: parseInt(studentId), new_room_id: roomId })
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById("step2").classList.add("hidden");
+                document.getElementById("step3").classList.remove("hidden");
+                document.getElementById("new-room-id").innerText = data.new_room_id;
+            })
+            .catch(error => console.error('Hata:', error));
+        }
+
+        function fetchRecommendedRooms() {
+            let studentId = document.getElementById('student-id').value;
+            if (!studentId) {
+                alert("Lütfen öğrenci ID'nizi girin!");
+                return;
+            }
+            
+            fetch('http://127.0.0.1:8000/match_room', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ student_id: parseInt(studentId) })
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById("step1").classList.add("hidden");
+                document.getElementById("step2").classList.remove("hidden");
+
+                let roomOptionsDiv = document.getElementById('room-options');
+                roomOptionsDiv.innerHTML = "";
+
+                data.recommended_rooms.forEach(room => {
+                    let button = document.createElement('button');
+                    button.classList.add('btn', 'green-btn');
+                    button.innerText = `Önerilen Oda: %${room.match_percentage} Uyum`;
+                    button.onclick = function() { confirmRoom(room.room_id); };
+
+                    roomOptionsDiv.appendChild(button);
+                    roomOptionsDiv.appendChild(document.createElement('br'));
+                });
+            })
+            .catch(error => console.error('Hata:', error));
+        }
+
+        function restart() {
+            document.getElementById("step3").classList.add("hidden");
+            document.getElementById("menuScreen").classList.remove("hidden");
+            document.getElementById("step1").classList.remove("hidden");
+        }
+    </script>
 </body>
 </html>
